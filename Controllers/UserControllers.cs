@@ -3,6 +3,7 @@ namespace todo.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using todo.Data;
+    using todo.Models;
     using todo.DTOs;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -39,6 +40,17 @@ namespace todo.Controllers
 
             var userDto = new UserResponseDTO(user.Id, user.Name, user.Email);
             return Ok(userDto);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<UserResponseDTO>> Create(UserRequestDTO userRequest)
+        {
+            var user = new User(userRequest.name, userRequest.email, userRequest.password);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var userDto = new UserResponseDTO(user.Id, user.Name, user.Email);
+            return CreatedAtAction(nameof(Get), new { id = user.Id }, userDto);
         }
     }
 }

@@ -25,7 +25,7 @@ classDiagram
         datetime updated_at
     }
     
-    class Task {
+    class Todo {
         uuid id
         uuid userId
         string title

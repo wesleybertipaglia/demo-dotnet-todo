@@ -1,37 +1,44 @@
-namespace todo.Controllers;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using todo.Data;
-using todo.Models;
-
-[Route("api/[controller]")]
-[ApiController]
-public class UserController : ControllerBase
+namespace todo.Controllers
 {
-    private readonly AppDBContext _context;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using todo.Data;
+    using todo.DTOs;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using System;
 
-    public UserController(AppDBContext context)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UserController : ControllerBase
     {
-        _context = context;
-    }
+        private readonly AppDBContext _context;
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> List()
-    {
-        return await _context.Users.ToListAsync();
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<User>> Get(Guid id)
-    {
-        var user = await _context.Users.FindAsync(id);
-
-        if (user == null)
+        public UserController(AppDBContext context)
         {
-            return NotFound();
+            _context = context;
         }
 
-        return user;
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserResponseDTO>>> List()
+        {
+            var users = await _context.Users.ToListAsync();
+            var userDtos = users.Select(user => new UserResponseDTO(user.Id, user.Name, user.Email)).ToList();
+            return Ok(userDtos);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<UserResponseDTO>> Get(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var userDto = new UserResponseDTO(user.Id, user.Name, user.Email);
+            return Ok(userDto);
+        }
     }
 }

@@ -1,4 +1,6 @@
-public class Task
+namespace todo.Models;
+
+public class Todo
 {
     public Guid Id { get; init; }
     public string Title { get; set; }
@@ -6,7 +8,7 @@ public class Task
     public string Status { get; set; }
     public User User { get; set; }
 
-    public Task(string title, string description, string status, User user)
+    public Todo(string title, string description, string status, User user)
     {
         Id = Guid.NewGuid();
         Title = title;

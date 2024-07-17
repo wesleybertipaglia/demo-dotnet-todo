@@ -1,111 +1,110 @@
-namespace todo.Controllers
+namespace todo.Controllers;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using todo.Data;
+using todo.Models;
+using todo.DTOs;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System;
+
+[Route("api/[controller]")]
+[ApiController]
+public class UserController : ControllerBase
 {
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-    using todo.Data;
-    using todo.Models;
-    using todo.DTOs;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using System;
+    private readonly AppDBContext _context;
 
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    public UserController(AppDBContext context)
     {
-        private readonly AppDBContext _context;
+        _context = context;
+    }
 
-        public UserController(AppDBContext context)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<UserResponseDTO>>> List()
+    {
+        var users = await _context.Users.ToListAsync();
+        var userDtos = users.Select(user => new UserResponseDTO(user.Id, user.Name, user.Email)).ToList();
+        return Ok(userDtos);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<UserResponseDTO>> Get(Guid id)
+    {
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
         {
-            _context = context;
+            return NotFound();
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserResponseDTO>>> List()
+        var userDto = new UserResponseDTO(user.Id, user.Name, user.Email);
+        return Ok(userDto);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<UserResponseDTO>> Create(UserRequestDTO userRequest)
+    {
+        var user = new User(userRequest.name, userRequest.email, userRequest.password);
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var userDto = new UserResponseDTO(user.Id, user.Name, user.Email);
+        return CreatedAtAction(nameof(Get), new { id = user.Id }, userDto);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, UserRequestDTO userRequest)
+    {
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
         {
-            var users = await _context.Users.ToListAsync();
-            var userDtos = users.Select(user => new UserResponseDTO(user.Id, user.Name, user.Email)).ToList();
-            return Ok(userDtos);
+            return NotFound();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserResponseDTO>> Get(Guid id)
+        user.Name = userRequest.name;
+        user.Email = userRequest.email;
+        user.Password = userRequest.password;
+
+        _context.Entry(user).State = EntityState.Modified;
+
+        try
         {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            var userDto = new UserResponseDTO(user.Id, user.Name, user.Email);
-            return Ok(userDto);
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<UserResponseDTO>> Create(UserRequestDTO userRequest)
-        {
-            var user = new User(userRequest.name, userRequest.email, userRequest.password);
-            _context.Users.Add(user);
             await _context.SaveChangesAsync();
-
-            var userDto = new UserResponseDTO(user.Id, user.Name, user.Email);
-            return CreatedAtAction(nameof(Get), new { id = user.Id }, userDto);
         }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, UserRequestDTO userRequest)
+        catch (DbUpdateConcurrencyException)
         {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
+            if (!UserExists(id))
             {
                 return NotFound();
             }
-
-            user.Name = userRequest.name;
-            user.Email = userRequest.email;
-            user.Password = userRequest.password;
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
+            else
             {
-                await _context.SaveChangesAsync();
+                throw;
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NotFound();
         }
 
-        private bool UserExists(Guid id)
-        {
-            return _context.Users.Any(e => e.Id == id);
-        }
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    private bool UserExists(Guid id)
+    {
+        return _context.Users.Any(e => e.Id == id);
     }
 }

@@ -5,13 +5,11 @@ using todo.Models;
 
 public class AppDBContext : DbContext
 {
+    public AppDBContext(DbContextOptions<AppDBContext> options)
+        : base(options)
+    {
+    }
+
     public DbSet<User> Users { get; set; }
     public DbSet<Todo> Todos { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseSqlite("Data Source=Database.sqlite");
-        optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
-        base.OnConfiguring(optionsBuilder);
-    }
 }

@@ -1,5 +1,7 @@
 namespace todo.Models;
 
+#pragma warning disable CS8618
+
 public class User
 {
     public Guid Id { get; init; }

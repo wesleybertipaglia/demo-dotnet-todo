@@ -35,7 +35,7 @@ classDiagram
         datetime updated_at
     }
 
-    User "1" *-- "N" Task : creates
+    User "1" *-- "N" Todo : creates
 ```
 
 ## Contributing

@@ -3,7 +3,7 @@ namespace todo.Data;
 using Microsoft.EntityFrameworkCore;
 using todo.Models;
 
-public class AppContext : DbContext
+public class AppDBContext : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Todo> Todos { get; set; }

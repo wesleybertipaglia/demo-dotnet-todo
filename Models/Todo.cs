@@ -8,6 +8,10 @@ public class Todo
     public string Status { get; set; }
     public User User { get; set; }
 
+    public Todo()
+    {
+    }
+
     public Todo(string title, string description, string status, User user)
     {
         Id = Guid.NewGuid();

@@ -1,3 +1,5 @@
+namespace todo.Models;
+
 public class User
 {
     public Guid Id { get; init; }
